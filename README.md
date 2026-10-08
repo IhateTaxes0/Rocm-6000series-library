@@ -1,46 +1,69 @@
-# ROCm 6000 Series Library (Template)
+# ROCm 6000 Series Diagnostics
 
-> **Status: template only.** This repository currently contains no executable library, GPU kernels, or ROCm runtime. It is a clean starting point for building and documenting a small compatibility/helper library for AMD RDNA 2 (GFX103x) GPUs, including Radeon RX 6000-series cards.
+A small Python starter library and command-line tool for inspecting whether a local PyTorch installation was built with ROCm and whether it can see AMD GPUs. For detected devices it reports the name and, when exposed by PyTorch, the GFX architecture string.
 
-## What this project is intended to do
-
-The planned library will make it easier for an application to report whether its GPU architecture and installed ROCm components match a tested configuration. It should provide a small, documented API and an explicit compatibility matrix. It is not a replacement for AMD's driver or ROCm SDK, and it does not include PyTorch or other framework builds.
-
-Hardware support must be verified per card, operating system, driver, ROCm version, and framework build. The presence of GFX103x packages in another application's distribution is not proof that every RX 6000-series card or operating system is supported.
+This is a **diagnostics helper**, not a ROCm runtime, kernel library, driver installer, or official compatibility validator. It does not decide whether a specific RX 6000-series card is supported. Support depends on the exact GPU, operating system, driver, ROCm release, and PyTorch build; verify that combination against the vendor's current documentation and a real workload.
 
 ## Requirements
 
-- An AMD GPU and operating system supported by the specific ROCm release you intend to use.
-- A matching AMD driver and ROCm installation. Follow AMD's current installation guide for your platform: <https://rocm.docs.amd.com/projects/install-on-linux/en/latest/> or <https://rocm.docs.amd.com/projects/install-on-windows/en/latest/>.
-- A development toolchain for the language chosen for this library. This template does not prescribe one yet.
+- Python 3.10 or newer.
+- PyTorch with a ROCm build to inspect an AMD GPU. PyTorch's ROCm build uses the `torch.cuda` API; this package deliberately does not install or bundle PyTorch.
+- A supported AMD driver and ROCm/PyTorch combination. Follow the current AMD install guide for your operating system: [ROCm on Linux](https://rocm.docs.amd.com/projects/install-on-linux/en/latest/) or [ROCm on Windows](https://rocm.docs.amd.com/projects/install-on-windows/en/latest/).
 
-## Start here
+The report command can also run without PyTorch or a visible GPU and will describe the condition it found. No GPU is needed to run the unit tests.
 
-1. Clone this repository and create a feature branch.
-2. Decide the library's language, supported platforms, and public API before adding implementation code.
-3. Check the GPU model and architecture target with the tools shipped by your ROCm installation. Record the exact command and output in the compatibility table; do not infer compatibility from the product family alone.
-4. Add a minimal implementation and tests that run on both a supported ROCm device and a machine without ROCm, where practical.
-5. Document installation, build, test, and usage commands here once those commands exist.
+## Install
 
-## Compatibility matrix
+From a clone of this repository, install the package in editable mode:
 
-Replace this example row only after testing the complete configuration with a real workload.
+```powershell
+python -m pip install -e .
+```
 
-| GPU model | Architecture target | OS | Driver | ROCm | Framework/build | Result |
+Install the PyTorch build that matches your operating system and ROCm setup separately, using the current instructions from AMD or the PyTorch project. Do not install a random ROCm wheel based only on the RX 6000 product family.
+
+## Use
+
+Run the CLI and print a JSON diagnostic report:
+
+```powershell
+rocm6000-diagnose
+```
+
+Or use the library API:
+
+```python
+from dataclasses import asdict
+import json
+
+from rocm6000 import inspect_rocm
+
+report = inspect_rocm()
+print(json.dumps(asdict(report), indent=2))
+```
+
+The report includes whether PyTorch imports successfully, its version, detected HIP/ROCm version, device availability, GPU names, architecture strings when PyTorch exposes them, and diagnostic errors. A missing or broken PyTorch installation or unavailable GPU is reported as data; it is not treated as proof that the hardware is unsupported.
+
+## Test
+
+```powershell
+python -m unittest discover -s tests -v
+```
+
+Tests use fake PyTorch objects and do not require ROCm hardware.
+
+## Compatibility records
+
+Add real test results here only after testing a workload on the complete configuration. Detection alone is not a compatibility test.
+
+| GPU model | Architecture | OS | AMD driver | ROCm | PyTorch build | Workload/result |
 | --- | --- | --- | --- | --- | --- | --- |
 | Not tested | Not tested | Not tested | Not tested | Not tested | Not tested | Not tested |
 
-## Repository contents
+## Scope and contributions
 
-- `README.md`: project scope, setup prerequisites, and the compatibility record to maintain.
-- `.gitignore`: excludes local environments, build output, and packaged GPU/runtime binaries.
-
-Only commit source code, tests, and documentation that you have permission to redistribute. Do not copy the `_rocm_sdk_core`, `_rocm_sdk_libraries_gfx103X_dgpu`, PyTorch, or model-weight folders from an installed application into this repository. Use AMD's official distribution channels for ROCm components and check each dependency's license before redistributing it.
-
-## Contributing
-
-Before reporting a compatibility result, include the exact GPU model, architecture target, OS version, AMD driver, ROCm version, framework build (if used), test command, and observed result. Mark untested combinations as **Not tested** rather than implying support.
+Keep the package focused on diagnostics. Do not commit proprietary SDK/runtime binaries, compiled GPU kernels, model weights, or copied application bundles. Include the exact GPU model, OS, driver, ROCm version, PyTorch build, command, and workload with any compatibility report.
 
 ## License
 
-Choose and add a license before distributing code. Until a license is added, all rights are reserved by default; do not assume this template grants permission to reuse third-party code or assets.
+No license has been selected yet. Add a license before granting others permission to reuse or distribute this code.

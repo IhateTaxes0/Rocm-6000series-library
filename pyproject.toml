@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rocm6000-diagnostics"
+version = "0.1.0"
+description = "Diagnostics for PyTorch ROCm visibility on AMD GPUs"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.scripts]
+rocm6000-diagnose = "rocm6000.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
