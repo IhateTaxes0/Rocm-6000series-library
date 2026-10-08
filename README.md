@@ -1,8 +1,25 @@
-# ROCm 6000 Series Diagnostics
+# ROCm 6000 Series Project Template
 
-A small Python starter library and command-line tool for inspecting whether a local PyTorch installation was built with ROCm and whether it can see AMD GPUs. For detected devices it reports the name and, when exposed by PyTorch, the GFX architecture string.
+This repository is a starter template for Python projects targeting AMD GPUs through ROCm and PyTorch, including RX 6000-series hardware where the exact software stack supports it. It includes a small diagnostics library and command-line tool to inspect the local PyTorch/ROCm environment before adding application-specific GPU work.
 
-This is a **diagnostics helper**, not a ROCm runtime, kernel library, driver installer, or official compatibility validator. It does not decide whether a specific RX 6000-series card is supported. Support depends on the exact GPU, operating system, driver, ROCm release, and PyTorch build; verify that combination against the vendor's current documentation and a real workload.
+This template is not itself a ROCm runtime, driver installer, benchmark, or official compatibility validator. Detecting a GPU does not prove that a workload is supported. Support depends on the exact GPU, operating system, driver, ROCm release, and PyTorch build; verify that combination against AMD's current documentation and a real workload.
+
+## What you can build with it
+
+- **Tensor and matrix calculations:** matrix multiplication, vector operations, reductions, and other PyTorch tensor workloads.
+- **Image and video processing:** batched image transforms, filters, resizing, and other operations supported by the libraries you add.
+- **Machine-learning applications:** model inference or experimentation with ROCm-compatible PyTorch models.
+- **Scientific and engineering computing:** numerical workloads that can be expressed with supported PyTorch operations.
+
+These are project directions, not calculations implemented by this starter yet. The code currently provided is the ROCm/PyTorch diagnostics helper described below; add and test your chosen workload in its own module before treating it as part of the library.
+
+## Included
+
+- `rocm6000.inspect_rocm()`: reports whether PyTorch imports, its version and HIP/ROCm version, GPU visibility, GPU names, GFX architecture identifiers when exposed, and diagnostic errors.
+- `rocm6000-diagnose`: prints the same report as JSON for setup checks and bug reports.
+- Packaging metadata and offline unit tests that do not require an AMD GPU.
+
+The starter does not include matrix-multiplication functions, image/video kernels, machine-learning models, or GPU-specific compiled code. It does not install drivers or ROCm, choose PyTorch wheels, or certify RX 6000-series support.
 
 ## Requirements
 
@@ -52,13 +69,22 @@ python -m unittest discover -s tests -v
 
 Tests use fake PyTorch objects and do not require ROCm hardware.
 
-## Compatibility records
+## Compatibility
 
-Add real test results here only after testing a workload on the complete configuration. Detection alone is not a compatibility test.
+The package itself requires Python 3.10 or newer and uses only the Python standard library. It queries PyTorch's `torch.cuda` API, which ROCm-enabled PyTorch also provides. To identify ROCm, it reads `torch.version.hip`; to identify devices, it asks the installed PyTorch build. The package does not have its own GPU backend and does not bundle PyTorch or ROCm.
 
-| GPU model | Architecture | OS | AMD driver | ROCm | PyTorch build | Workload/result |
-| --- | --- | --- | --- | --- | --- | --- |
-| Not tested | Not tested | Not tested | Not tested | Not tested | Not tested | Not tested |
+The project is aimed at diagnostics for AMD GPUs, including Radeon RX 6000-series devices that report GFX103x targets such as `gfx1030`, `gfx1031`, `gfx1032`, or `gfx1034`. These are architecture identifiers the report may display, **not a guarantee** that every card, OS, or ROCm/PyTorch combination can execute workloads. GPU execution support is determined by AMD's support matrix for the exact software versions in use.
+
+| Component or configuration | Compatibility/status |
+| --- | --- |
+| Python | 3.10 or newer; package source uses the standard library only |
+| ROCm-enabled PyTorch | Inspected through `torch.version.hip` and PyTorch's device API; live ROCm runtime not validated in this repository |
+| CPU-only PyTorch or no visible GPU | Reported as a diagnostic state; GPU hardware is not needed for unit tests |
+| AMD RX 6000 / GFX103x GPU execution | Intended diagnostic audience; no physical-GPU workload has been tested here, so execution compatibility is **unverified** |
+| Windows ROCm GPU support | Depends on AMD's supported GPU/driver/ROCm/PyTorch combination; not certified by this project |
+| Linux ROCm GPU support | Depends on AMD's supported GPU/driver/ROCm/PyTorch combination; not certified by this project |
+
+Check AMD's current [Linux installation documentation](https://rocm.docs.amd.com/projects/install-on-linux/en/latest/) or [Windows installation documentation](https://rocm.docs.amd.com/projects/install-on-windows/en/latest/) before choosing a GPU, driver, ROCm release, or PyTorch build. Add a compatibility result here only after testing a real workload on the complete configuration; detection alone is not a compatibility test.
 
 ## Scope and contributions
 
